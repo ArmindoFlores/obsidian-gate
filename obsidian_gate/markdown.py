@@ -1,14 +1,21 @@
 __all__ = [
-    "ObsidianRenderer",
-    "obsidian_plugin",
+    "parser",
 ]
-
-import re
 
 import mistune
 from mistune.renderers.html import HTMLRenderer
-from mistune.inline_parser import InlineParser
-
+from mistune.plugins import (
+    abbr,
+    def_list,
+    footnotes,
+    formatting,
+    math,
+    ruby,
+    spoiler,
+    task_lists,
+    table,
+    url,
+)
 
 class ObsidianRenderer(HTMLRenderer):
     def __init__(self):
@@ -53,13 +60,28 @@ def obsidian_plugin(md: mistune.Markdown):
         parse_comment
     )
 
-# Set up markdown parser
-renderer = ObsidianRenderer()
-markdown = mistune.Markdown(renderer=renderer)
-obsidian_plugin(markdown)
+def get_renderer_and_parser():
+    renderer = ObsidianRenderer()
+    parser = mistune.Markdown(renderer=renderer)
+    obsidian_plugin(parser)
+    abbr.abbr(parser)
+    def_list.def_list(parser)
+    footnotes.footnotes(parser)
+    formatting.strikethrough(parser)
+    formatting.subscript(parser)
+    formatting.superscript(parser)
+    formatting.mark(parser)
+    math.math(parser)
+    ruby.ruby(parser)
+    spoiler.spoiler(parser)
+    task_lists.task_lists(parser)
+    table.table(parser)
+    url.url(parser)
+    return renderer, parser
 
-# Example usage
-md = """
+if __name__ == "__main__":
+    # Example usage
+    md = """
 Here's a regular image: ![[image1.png]]
 
 A link to a note: [[NoteName]]
@@ -68,12 +90,18 @@ A link with alias: [[Folder/Note2|Title]]
 A standard image: ![Alt](pic.jpg)
 An external link: [File](docs/file.pdf)
 
+~~strikethrough~~
+H~2~O should be formatted
+This is a big number: 10^10^
+==mark me==
+
 %%private%%
 This is a secret section.
 With multiple lines!
 %%/private%%
-"""
+    """
 
-html = markdown(md)
-print("Assets found:", renderer.assets)
-print(html)
+    renderer, parser = get_renderer_and_parser()
+    html = parser(md)
+    print("Assets found:", renderer.assets)
+    print(html)

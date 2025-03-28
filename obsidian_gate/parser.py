@@ -37,12 +37,8 @@ def parse_yaml(file):
     return properties.get("private", False)
 
 def parse_markdown(file):
-    renderer = markdown.ObsidianRenderer()
-    md = mistune.create_markdown(
-        renderer=renderer, 
-        plugins=[markdown.obsidian_plugin]
-    )
-    html = md(file.read())
+    renderer, parser = markdown.get_renderer_and_parser()
+    html = parser(file.read())
     assets = renderer.assets
     print(assets)
     return html
