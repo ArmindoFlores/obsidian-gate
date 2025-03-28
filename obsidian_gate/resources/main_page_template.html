@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ vault_name }}</title>
+    <link rel="stylesheet" href="/styles/default.css">
+    {% if stylesheet %}
+    <link rel="stylesheet" href="/styles/custom.css">
+    {% endif %}
+    <script>
+        const theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", theme);
+    </script>
+</head>
+
+<body>
+    <header>
+        <h1>{{ vault_name }} - Index</h1>
+    </header>
+
+    <div class="container">
+        <p>Here is an index of this site.</p>
+        {{ content | safe }}
+    </div>
+
+    <footer>
+        <p>Obsidian Gate - {{ vault_name }}</p>
+    </footer>
+</body>
+
+</html>

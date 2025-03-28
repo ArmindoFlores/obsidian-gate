@@ -2,6 +2,8 @@ __all__ = [
     "parser",
 ]
 
+import os
+
 import mistune
 from mistune.renderers.html import HTMLRenderer
 from mistune.plugins import (
@@ -17,18 +19,33 @@ from mistune.plugins import (
     url,
 )
 
+from . import utils
+
+
 class ObsidianRenderer(HTMLRenderer):
-    def __init__(self):
+    def __init__(self, files, extra_args):
         super().__init__()
         self.assets = []
-        self.register("wikilink", self.render_wikilink)
+        self.files = files
+        self.extra_args = extra_args
+        self.register("wikilink", self.render_wikilink)   
 
-    # def render_wikilink(self, target, label, is_embed):
+    def find(self, asset):
+        for file in self.files:
+            file_name = os.path.basename(file)
+            if file_name == asset:
+                return utils.strip_md_extension(file)
+
     def render_wikilink(self, _, raw):
         is_embed, target, label = raw["is_embed"], raw["target"], raw["label"]
         if is_embed or any(target.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
             self.assets.append(target)
-        return f'<a href="{target}">{label}</a>'
+        
+        target_location = self.find(target + ".md")
+        if target_location is not None and self.extra_args.html_ext:
+            target_location += ".html"
+
+        return f'<a{" class=\"missing\"" if target_location is None else ""} href="{"#" if target_location is None else "/"+target_location}">{label}</a>'
 
 def obsidian_plugin(md: mistune.Markdown):
     def parse_wikilink(_, m, state):
@@ -60,8 +77,8 @@ def obsidian_plugin(md: mistune.Markdown):
         parse_comment
     )
 
-def get_renderer_and_parser():
-    renderer = ObsidianRenderer()
+def get_renderer_and_parser(files, extra_args):
+    renderer = ObsidianRenderer(files, extra_args)
     parser = mistune.Markdown(renderer=renderer)
     obsidian_plugin(parser)
     abbr.abbr(parser)
@@ -101,7 +118,7 @@ With multiple lines!
 %%/private%%
     """
 
-    renderer, parser = get_renderer_and_parser()
+    renderer, parser = get_renderer_and_parser({})
     html = parser(md)
     print("Assets found:", renderer.assets)
     print(html)

@@ -10,6 +10,7 @@ dependencies = [
     "pyyaml",
     "mistune",
     "mkdocs",
+    "jinja2"
 ]
 
 [project.scripts]

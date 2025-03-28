@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ vault_name }} | {{ page_title }}</title>
+    <link rel="stylesheet" href="/styles/default.css">
+    {% if stylesheet %}
+    <link rel="stylesheet" href="/styles/custom.css">
+    {% endif %}
+    <script>
+        const theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", theme);
+    </script>
+    <script src="/js/search_script.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>{{ page_title }}</h1>
+    </header>
+
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search the vault..." oninput="handleSearch(this.value)" />
+            <div id="search-results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="container">
+        {{ content | safe }}
+    </div>
+
+    <footer>
+        <p>Obsidian Gate - {{ vault_name }} - {{ page_title }}</p>
+    </footer>
+</body>
+
+</html>

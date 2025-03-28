@@ -1,22 +1,10 @@
 import argparse
 import os
 
-import mistune
 import yaml
 
-from . import markdown
+from . import markdown, utils
 
-
-def _walk_file_tree(path, files):
-    for name, subdir in files.items():
-        new_path = os.path.join(path, name)
-        if subdir == "file":
-            yield path, name
-        else:
-            yield from _walk_file_tree(new_path, subdir)
-
-def walk_file_tree(files):
-    return _walk_file_tree(".", files)
 
 def parse_yaml(file):
     first_line = file.readline()
@@ -36,31 +24,38 @@ def parse_yaml(file):
     properties = yaml.safe_load(content)
     return properties.get("private", False)
 
-def parse_markdown(file):
-    renderer, parser = markdown.get_renderer_and_parser()
+def parse_markdown(file, files, extra_args):
+    renderer, parser = markdown.get_renderer_and_parser(files, extra_args)
     html = parser(file.read())
     assets = renderer.assets
-    print(assets)
-    return html
+    return html, assets
 
-def parse_and_strip_file_to(source_filename, destination_filename):
+def parse_and_strip_file_to(source_filename, destination_filename, files, extra_args):
+    assets = []
     should_skip = False
     try:
         with open(source_filename, "r") as source_file:
             with open(destination_filename, "w") as destination_file:
                 should_skip = parse_yaml(source_file)
                 if should_skip:
-                    return
-                destination_file.write(parse_markdown(source_file))
+                    return True, []
+                html, file_assets = parse_markdown(source_file, files, extra_args)
+                destination_file.write(html)
+                assets += file_assets
     finally:
         # Handle file deletion
         if should_skip:
             os.remove(destination_filename)
+    return False, assets
 
-def parse_and_strip(files, source, destination):
-    for parent, file in walk_file_tree(files):
-        if not file.endswith(".md"):
+def parse_and_strip(files, source, destination, extra_args):
+    assets = []
+    filtered_file_list = []
+    for path in files:
+        if not path.endswith(".md"):
             continue
+        parent = os.path.dirname(path)
+        file = os.path.basename(path)
 
         # Create an output directory for this file
         current_file_destination_dir = os.path.join(destination, parent)
@@ -70,10 +65,17 @@ def parse_and_strip(files, source, destination):
         os.makedirs(current_file_destination_dir, exist_ok=True)
 
         # Parse its contents and write it new directory
-        parse_and_strip_file_to(
+        skipped, file_assets = parse_and_strip_file_to(
             current_file_source,
             current_file_destination,
+            files,
+            extra_args
         )
+        if not skipped:
+            assets += file_assets
+            filtered_file_list.append(path)
+
+    return filtered_file_list, assets
 
 def parse_handler(args: argparse.Namespace):
     return 0
