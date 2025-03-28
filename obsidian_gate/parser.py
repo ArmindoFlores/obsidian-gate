@@ -1,6 +1,8 @@
 import argparse
 import os
 
+import yaml
+
 
 def _walk_file_tree(path, files):
     for name, subdir in files.items():
@@ -13,11 +15,45 @@ def _walk_file_tree(path, files):
 def walk_file_tree(files):
     return _walk_file_tree(".", files)
 
+def parse_normal_line(state, text):
+
+    return state, text
+
+def parse_yaml(file):
+    first_line = file.readline()
+    if first_line != "---\n":
+        file.seek(0)
+        return False
+    lines = []
+    while True:
+        line = file.readline()
+        if line == "":
+            file.seek(0)
+            return False
+        if line == "---" or line == "---\n":
+            break
+        lines.append(line)
+    content = "".join(lines)
+    properties = yaml.safe_load(content)
+    return properties.get("private", False)
+
+def parse_markdown(file):
+    # FIXME: parse this markdown, remove comments, and collect assets
+    return file.read()
+
 def parse_and_strip_file_to(source_filename, destination_filename):
-    with open(source_filename, "r") as source_file:
-        with open(destination_filename, "w") as destination_file:
-            # TODO: PARSE!
-            destination_file.write(source_file.read())
+    should_skip = False
+    try:
+        with open(source_filename, "r") as source_file:
+            with open(destination_filename, "w") as destination_file:
+                should_skip = parse_yaml(source_file)
+                if should_skip:
+                    return
+                destination_file.write(parse_markdown(source_file))
+    finally:
+        # Handle file deletion
+        if should_skip:
+            os.remove(destination_filename)
 
 def parse_and_strip(files, source, destination):
     for parent, file in walk_file_tree(files):
