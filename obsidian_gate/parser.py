@@ -1,7 +1,10 @@
 import argparse
 import os
 
+import mistune
 import yaml
+
+from . import markdown
 
 
 def _walk_file_tree(path, files):
@@ -14,10 +17,6 @@ def _walk_file_tree(path, files):
 
 def walk_file_tree(files):
     return _walk_file_tree(".", files)
-
-def parse_normal_line(state, text):
-
-    return state, text
 
 def parse_yaml(file):
     first_line = file.readline()
@@ -38,8 +37,15 @@ def parse_yaml(file):
     return properties.get("private", False)
 
 def parse_markdown(file):
-    # FIXME: parse this markdown, remove comments, and collect assets
-    return file.read()
+    renderer = markdown.ObsidianRenderer()
+    md = mistune.create_markdown(
+        renderer=renderer, 
+        plugins=[markdown.obsidian_plugin]
+    )
+    html = md(file.read())
+    assets = renderer.assets
+    print(assets)
+    return html
 
 def parse_and_strip_file_to(source_filename, destination_filename):
     should_skip = False
@@ -57,9 +63,13 @@ def parse_and_strip_file_to(source_filename, destination_filename):
 
 def parse_and_strip(files, source, destination):
     for parent, file in walk_file_tree(files):
+        if not file.endswith(".md"):
+            continue
+
         # Create an output directory for this file
         current_file_destination_dir = os.path.join(destination, parent)
         current_file_destination = os.path.abspath(os.path.join(current_file_destination_dir, file))
+        current_file_destination = current_file_destination[:-2] + "html"
         current_file_source = os.path.abspath(os.path.join(source, parent, file))
         os.makedirs(current_file_destination_dir, exist_ok=True)
 
@@ -68,7 +78,6 @@ def parse_and_strip(files, source, destination):
             current_file_source,
             current_file_destination,
         )
-
 
 def parse_handler(args: argparse.Namespace):
     return 0
