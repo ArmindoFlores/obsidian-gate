@@ -25,4 +25,4 @@ where = ["."]
 include = ["obsidian_gate*"]
 
 [tool.setuptools.package-data]
-your_package = ["resources/*"]
+obsidian_gate = ["resources/*"]
