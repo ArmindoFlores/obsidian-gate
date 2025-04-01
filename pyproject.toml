@@ -1,6 +1,6 @@
 [project]
 name = "obsidian-gate"
-version = "0.1.0"
+version = "0.1.1"
 description = "Publish Obsidian vaults to the web with filtered content for players."
 authors = [{ name="Francisco Rodrigues", email="francisco.rodrigues0908@gmail.com" }]
 readme = "README.md"
