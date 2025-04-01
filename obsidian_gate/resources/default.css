@@ -22,11 +22,11 @@
 body {
     margin: 0;
     padding: 1.5rem;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: "Cardo", serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.7;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
 }
 
 .container {
