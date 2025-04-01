@@ -39,13 +39,22 @@ class ObsidianRenderer(HTMLRenderer):
     def render_wikilink(self, _, raw):
         is_embed, target, label = raw["is_embed"], raw["target"], raw["label"]
         if is_embed or any(target.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
-            self.assets.append(target)
+            target_location = self.find(target)
+            image_size = ""
+            if label is not None:
+                try:
+                    size = int(label)
+                    image_size = f'width="{size}"'
+                except ValueError:
+                    pass
+            self.assets.append(target_location)
+            return f'<img src="{"/missing.png" if target_location is None else "/" + target_location}" ' + (image_size) + '/>'
         
         target_location = self.find(target + ".md")
         if target_location is not None and self.extra_args.html_ext:
             target_location += ".html"
 
-        return f'<a{" class=\"missing\"" if target_location is None else ""} href="{"#" if target_location is None else "/"+target_location}">{label}</a>'
+        return f'<a{" class=\"missing\"" if target_location is None else ""} href="{"#" if target_location is None else "/" + target_location}">{label}</a>'
 
 def obsidian_plugin(md: mistune.Markdown):
     def parse_wikilink(_, m, state):

@@ -39,16 +39,23 @@ def html_for(environment, filename, file_contents, args):
     )
     return rendered
 
-def render_index_to_html(index, level=0, path=""):
+def render_index_to_html(index, files, level=0, path=""):
     html = ""
     indent = "  " * level
 
     for key, value in index.items():
+        if value == "file" and (not key.endswith(".md") or key not in files):
+            continue
+        if value != "file" and len(value.values()) == 0:
+            continue
         name = utils.strip_md_extension(key)
         if isinstance(value, dict):
+            rendered_html = render_index_to_html(value, files, level + 1, path + "/" + key)
+            if rendered_html == "":
+                continue
             html += f"{indent}<div class=\"index-group\">\n"
-            html += f"{indent}  <strong>{key}</strong><br/>\n"
-            html += render_index_to_html(value, level + 1, path + "/" + key)
+            html += f'{indent}  <strong class="im-fell-great-primer-sc">{key}</strong><br/>\n'
+            html += rendered_html
             html += f"{indent}</div>\n"
         else:
             html += f"{indent}  <div class=\"index-item\">&bull; <a href=\"{path}/{name}.html\">{name}</a></div>\n"
@@ -69,6 +76,7 @@ def build_handler(args: argparse.Namespace):
     # into HTML
     with tempfile.TemporaryDirectory() as tempdir:
         filtered_file_list, assets = parser.parse_and_strip(files_list, args.source, tempdir, args)
+        filtered_filename_list = [os.path.basename(path) for path in filtered_file_list]
 
         # 3rd step - build a working static site
         environment = Environment(loader=FileSystemLoader(utils.relative_path("resources")))
@@ -91,7 +99,7 @@ def build_handler(args: argparse.Namespace):
         output = template.render(
             vault_name=args.site_name,
             stylesheet=args.styles,
-            content=render_index_to_html(files_dict)
+            content=render_index_to_html(files_dict, filtered_filename_list)
         )
         with open(os.path.join(args.destination, "index.html"), "w") as f:
             f.write(output)
@@ -108,5 +116,11 @@ def build_handler(args: argparse.Namespace):
         styles_path = os.path.join(args.destination, "styles")
         os.makedirs(styles_path, exist_ok=True)
         shutil.copyfile(utils.relative_path("resources/default.css"), os.path.join(styles_path, "default.css"))
+
+        # Copy assets
+        assets_path = args.destination
+        for asset in assets:
+            os.makedirs(os.path.join(assets_path, os.path.dirname(asset)), exist_ok=True)
+            shutil.copyfile(os.path.join(args.source, asset), os.path.join(assets_path, asset))
 
     return 0

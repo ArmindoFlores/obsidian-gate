@@ -29,6 +29,18 @@ body {
     font-size: 1.3rem;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    font-family: "IM Fell Great Primer SC", serif;
+}
+
+.im-fell-great-primer-sc {
+    font-family: "IM Fell Great Primer SC", serif;
+}
+
+.cardo {
+    font-family: "Cardo", serif;
+}
+
 .container {
     max-width: var(--max-width);
     margin: 0 auto;
