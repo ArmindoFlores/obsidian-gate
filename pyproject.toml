@@ -1,0 +1,10 @@
+[project]
+name = "obsidian-gate"
+version = "0.1.0"
+description = "A tool aimed at generating a wiki-like website from an Obsidian vault"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "markdown-it-py[linkify,plugins]>=4.2.0",
+]
+ 
