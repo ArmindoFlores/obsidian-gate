@@ -9,6 +9,7 @@ from .plugins import (
     access_control_plugin,
     frontmatter_rendering_plugin,
     wikilinks_plugin,
+    admonitions_plugin,
 )
 from ..access_control import AccessController
 from ..vault import Vault
@@ -19,6 +20,7 @@ def make_markdown_parser(vault: "Vault", reference_prefix: str | None, extra_opt
     md.use(access_control_plugin)
     md.use(wikilinks_plugin, vault, reference_prefix)
     md.use(front_matter_plugin)
+    md.use(admonitions_plugin)
     md.use(frontmatter_rendering_plugin)
     md.use(footnote_plugin)
     return md
