@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 import dataclasses
 import re
 import typing
@@ -6,6 +5,8 @@ import typing
 from markdown_it.common.utils import escapeHtml
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from markdown_it import MarkdownIt
     from markdown_it.renderer import RendererProtocol
     from markdown_it.rules_inline import StateInline
@@ -15,7 +16,7 @@ if typing.TYPE_CHECKING:
     from obsidian_gate.utils import href_from_note_path
     from obsidian_gate.vault import Vault
 
-WIKILINK_RE = re.compile(r"\[\[([^\|]*?)(\|.+?)?\]\]")
+WIKILINK_RE = re.compile(r"\[\[([^\|]*?)(?:\|(.+?))?\]\]")
 WIKILINK_RULE_NAME = "wikilink"
 
 
@@ -39,7 +40,7 @@ class Wikilink:
         
         path = vault.path_from_reference(reference_str)
         if path is None:
-            reference = "#"
+            reference = reference_str.split("/")[-1]
         else:
             reference = href_from_note_path(reference_prefix, path)
 
@@ -84,7 +85,7 @@ def render_wikilink(self: "RendererProtocol", tokens: "Sequence[Token]", idx: in
     reference = token.meta["reference"]
     display_name = token.meta["display_name"] or reference
     missing = token.meta["missing"]
-    return f'<a class="wikilink{" missing" if missing else ""}" href="{reference}">{escapeHtml(display_name)}</a>'
+    return f'<a class="wikilink{" missing" if missing else ""}" href="{reference if not missing else "#"}">{escapeHtml(display_name)}</a>'
 
 
 def wikilinks_plugin(md: "MarkdownIt", vault: "Vault", reference_prefix: str | None = None) -> None:
