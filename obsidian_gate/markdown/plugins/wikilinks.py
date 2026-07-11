@@ -4,6 +4,8 @@ import typing
 
 from markdown_it.common.utils import escapeHtml
 
+from obsidian_gate.utils import href_from_note_path
+
 if typing.TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -13,7 +15,6 @@ if typing.TYPE_CHECKING:
     from markdown_it.token import Token
     from markdown_it.utils import EnvType, OptionsDict
 
-    from obsidian_gate.utils import href_from_note_path
     from obsidian_gate.vault import Vault
 
 WIKILINK_RE = re.compile(r"\[\[([^\|]*?)(?:\|(.+?))?\]\]")
@@ -25,6 +26,7 @@ class Wikilink:
     src: str
     length: int
     reference: str
+    reference_name: str
     display_name: str | None
     exists: bool
 
@@ -48,6 +50,7 @@ class Wikilink:
             src[start:end],
             end - start,
             reference,
+            reference_str,
             display_name,
             path is not None,
         )
@@ -70,6 +73,7 @@ def make_wikilinks_parser(vault: "Vault", reference_prefix: str | None):
             token = state.push(WIKILINK_RULE_NAME, "", 0)
             token.meta = {
                 "reference": parsed_wikilink.reference,
+                "reference_name": parsed_wikilink.reference_name,
                 "display_name": parsed_wikilink.display_name,
                 "missing": not parsed_wikilink.exists
             }
@@ -83,7 +87,8 @@ def make_wikilinks_parser(vault: "Vault", reference_prefix: str | None):
 def render_wikilink(self: "RendererProtocol", tokens: "Sequence[Token]", idx: int, _options: "OptionsDict", _env: "EnvType") -> str:
     token = tokens[idx]
     reference = token.meta["reference"]
-    display_name = token.meta["display_name"] or reference
+    reference_name = token.meta["reference_name"]
+    display_name = token.meta["display_name"] or reference_name
     missing = token.meta["missing"]
     return f'<a class="wikilink{" missing" if missing else ""}" href="{reference if not missing else "#"}">{escapeHtml(display_name)}</a>'
 
