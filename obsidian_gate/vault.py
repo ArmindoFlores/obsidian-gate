@@ -21,8 +21,9 @@ class Vault:
             self._reduce_path(path) for path in self.root.rglob("*")
         ] if self._filter_path(reduced_path)]
 
-    def path_from_reference(self, reference: str) -> str | None:
-        reference_parts = Path(reference + ".md").parts
+    def path_from_reference(self, reference: str, is_image: bool = False) -> str | None:
+        reference = reference if is_image else reference + ".md"
+        reference_parts = Path(reference).parts
         for vault_file in self._listing:
             matches = True
             for component1, component2 in zip(reversed(reference_parts), reversed(vault_file), strict=False):
@@ -30,5 +31,6 @@ class Vault:
                     matches = False
                     break
             if matches:
-                return "/".join(vault_file)[:-3]
+                joined = "/".join(vault_file)
+                return joined if is_image else joined[:-3]
         return None

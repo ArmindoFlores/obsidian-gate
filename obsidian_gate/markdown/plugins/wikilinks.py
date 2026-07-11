@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 
     from obsidian_gate.vault import Vault
 
-WIKILINK_RE = re.compile(r"\[\[([^\|]*?)(?:\|(.+?))?\]\]")
+WIKILINK_RE = re.compile(r"!?\[\[([^\|]*?)(?:\|(.+?))?\]\]")
 WIKILINK_TOKEN_NAME = "wikilink"
 
 
@@ -29,18 +29,27 @@ class Wikilink:
     reference_name: str
     display_name: str | None
     exists: bool
+    is_image: bool
+    size: float | None
 
     def parse(vault: "Vault", src: str, start: int = 0, reference_prefix: str | None = None) -> "Wikilink | None":
         m = WIKILINK_RE.match(src[start:])
         if m is None:
             return None
 
+        is_image = src[start] == "!"
         end = start + m.span()[1]
         start = start + m.span()[0]
         reference_str = m.group(1)
         display_name = m.group(2)
+        try:
+            image_size = float(m.group(2))
+            if image_size.is_integer():
+                image_size = int(image_size)
+        except (ValueError, TypeError):
+            image_size = None
         
-        path = vault.path_from_reference(reference_str)
+        path = vault.path_from_reference(reference_str, is_image)
         if path is None:
             reference = reference_str.split("/")[-1]
         else:
@@ -53,7 +62,10 @@ class Wikilink:
             reference_str,
             display_name,
             path is not None,
+            is_image,
+            image_size,
         )
+
 
 def make_wikilinks_parser(vault: "Vault", reference_prefix: str | None):
     def wikilink(state: "StateInline", silent: bool) -> bool:
@@ -75,7 +87,9 @@ def make_wikilinks_parser(vault: "Vault", reference_prefix: str | None):
                 "reference": parsed_wikilink.reference,
                 "reference_name": parsed_wikilink.reference_name,
                 "display_name": parsed_wikilink.display_name,
-                "missing": not parsed_wikilink.exists
+                "missing": not parsed_wikilink.exists,
+                "is_image": parsed_wikilink.is_image,
+                "size": parsed_wikilink.size,
             }
 
         state.pos = start + parsed_wikilink.length
@@ -90,7 +104,14 @@ def render_wikilink(self: "RendererProtocol", tokens: "Sequence[Token]", idx: in
     reference_name = token.meta["reference_name"]
     display_name = token.meta["display_name"] or reference_name
     missing = token.meta["missing"]
-    return f'<a class="wikilink{" missing" if missing else ""}" href="{reference if not missing else "#"}">{escapeHtml(display_name)}</a>'
+    is_image = token.meta["is_image"]
+    size = token.meta["size"]
+
+    if is_image:
+        width_text = f' width="{size}px"' if size is not None else ""
+        return f'<img class="wikilink"{width_text} src="{reference}" />'
+    else:
+        return f'<a class="wikilink{" missing" if missing else ""}" href="{reference if not missing else "#"}">{escapeHtml(display_name)}</a>'
 
 
 def wikilinks_plugin(md: "MarkdownIt", vault: "Vault", reference_prefix: str | None = None) -> None:
