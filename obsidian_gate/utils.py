@@ -14,7 +14,7 @@ def find_vault(start: str | Path) -> Path | None:
 
 def href_from_note_path(prefix: str | None, path: str) -> str:
     href = prefix or ""
-    if not prefix.endswith("/") and not path.startswith("/"):
+    if not href.endswith("/") and not path.startswith("/"):
         href += "/"
     href += path
     return href

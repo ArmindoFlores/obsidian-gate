@@ -12,8 +12,8 @@ if typing.TYPE_CHECKING:
     from markdown_it.token import Token
     from markdown_it.utils import EnvType, OptionsDict
 
-    from utils import href_from_note_path
-    from vault import Vault
+    from obsidian_gate.utils import href_from_note_path
+    from obsidian_gate.vault import Vault
 
 WIKILINK_RE = re.compile(r"\[\[([^\|]*?)(\|.+?)?\]\]")
 WIKILINK_RULE_NAME = "wikilink"
@@ -79,7 +79,7 @@ def make_wikilinks_parser(vault: "Vault", reference_prefix: str | None):
     return wikilink
 
 
-def render_wikilink(self: "RendererProtocol", tokens: "Sequence[Token]", idx: int, options: "OptionsDict", env: "EnvType") -> str:
+def render_wikilink(self: "RendererProtocol", tokens: "Sequence[Token]", idx: int, _options: "OptionsDict", _env: "EnvType") -> str:
     token = tokens[idx]
     reference = token.meta["reference"]
     display_name = token.meta["display_name"] or reference
