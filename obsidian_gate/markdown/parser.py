@@ -1,16 +1,22 @@
 from pathlib import Path
+import typing
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.front_matter import front_matter_plugin
 from mdit_py_plugins.footnote import footnote_plugin
 
-from .plugins import wikilinks_plugin
-from .plugins.frontmatter import frontmatter_rendering_plugin
+from .plugins import (
+    access_control_plugin,
+    frontmatter_rendering_plugin,
+    wikilinks_plugin,
+)
+from ..access_control import AccessController
 from ..vault import Vault
 
 
-def make_markdown_parser(vault: "Vault", reference_prefix: str | None) -> MarkdownIt:
-    md = MarkdownIt("gfm-like2")
+def make_markdown_parser(vault: "Vault", reference_prefix: str | None, extra_options: dict[str, typing.Any] | None = None) -> MarkdownIt:
+    md = MarkdownIt("gfm-like2", options_update=extra_options)
+    md.use(access_control_plugin)
     md.use(wikilinks_plugin, vault, reference_prefix)
     md.use(front_matter_plugin)
     md.use(frontmatter_rendering_plugin)
@@ -19,7 +25,11 @@ def make_markdown_parser(vault: "Vault", reference_prefix: str | None) -> Markdo
 
 
 def make_markdown_parser_for_rendering() -> MarkdownIt:
-    return make_markdown_parser(None, None)  # ty:ignore[invalid-argument-type]
+    return make_markdown_parser(
+        None,  # ty:ignore[invalid-argument-type]
+        None,
+        {"access_controller": AccessController()}
+    )
 
 
 def parse_file(vault_root: str | Path, file: Path, reference_prefix: str | None = None) -> list[dict]:

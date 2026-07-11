@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
     from obsidian_gate.vault import Vault
 
 WIKILINK_RE = re.compile(r"\[\[([^\|]*?)(?:\|(.+?))?\]\]")
-WIKILINK_RULE_NAME = "wikilink"
+WIKILINK_TOKEN_NAME = "wikilink"
 
 
 @dataclasses.dataclass
@@ -70,7 +70,7 @@ def make_wikilinks_parser(vault: "Vault", reference_prefix: str | None):
             return False
 
         if not silent:
-            token = state.push(WIKILINK_RULE_NAME, "", 0)
+            token = state.push(WIKILINK_TOKEN_NAME, "", 0)
             token.meta = {
                 "reference": parsed_wikilink.reference,
                 "reference_name": parsed_wikilink.reference_name,
@@ -94,5 +94,5 @@ def render_wikilink(self: "RendererProtocol", tokens: "Sequence[Token]", idx: in
 
 
 def wikilinks_plugin(md: "MarkdownIt", vault: "Vault", reference_prefix: str | None = None) -> None:
-    md.inline.ruler.before("link", WIKILINK_RULE_NAME, make_wikilinks_parser(vault, reference_prefix))
-    md.add_render_rule(WIKILINK_RULE_NAME, render_wikilink)
+    md.inline.ruler.before("link", "wikilink", make_wikilinks_parser(vault, reference_prefix))
+    md.add_render_rule(WIKILINK_TOKEN_NAME, render_wikilink)
