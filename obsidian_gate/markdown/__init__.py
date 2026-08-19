@@ -3,5 +3,4 @@ __all__ = [
     "renderer",
 ]
 
-from . import parser
-from . import renderer
+from . import parser, renderer

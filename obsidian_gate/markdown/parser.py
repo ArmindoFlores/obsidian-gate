@@ -1,18 +1,18 @@
-from pathlib import Path
 import typing
+from pathlib import Path
 
 from markdown_it import MarkdownIt
-from mdit_py_plugins.front_matter import front_matter_plugin
 from mdit_py_plugins.footnote import footnote_plugin
+from mdit_py_plugins.front_matter import front_matter_plugin
 
-from .plugins import (
-    access_control_plugin,
-    frontmatter_rendering_plugin,
-    wikilinks_plugin,
-    admonitions_plugin,
-)
 from ..access_control import AccessController
 from ..vault import Vault
+from .plugins import (
+    access_control_plugin,
+    admonitions_plugin,
+    frontmatter_rendering_plugin,
+    wikilinks_plugin,
+)
 
 
 def make_markdown_parser(vault: "Vault", reference_prefix: str | None, extra_options: dict[str, typing.Any] | None = None) -> MarkdownIt:
