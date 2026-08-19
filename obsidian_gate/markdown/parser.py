@@ -5,14 +5,14 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 from mdit_py_plugins.front_matter import front_matter_plugin
 
-from ..access_control import AccessController
-from ..vault import Vault
-from .plugins import (
+from obsidian_gate.access_control import AccessController
+from obsidian_gate.markdown.plugins import (
     access_control_plugin,
     admonitions_plugin,
     frontmatter_rendering_plugin,
     wikilinks_plugin,
 )
+from obsidian_gate.vault import Vault
 
 
 def make_markdown_parser(vault: "Vault", reference_prefix: str | None, extra_options: dict[str, typing.Any] | None = None) -> MarkdownIt:

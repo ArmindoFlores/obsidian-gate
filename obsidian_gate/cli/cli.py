@@ -1,10 +1,11 @@
 import argparse
+import os
 from errno import EINVAL, ENOENT
 from pathlib import Path
 from sys import stderr
 from typing import NoReturn
 
-from .. import markdown, utils
+from obsidian_gate import markdown, utils
 
 
 def make_parser():
@@ -19,6 +20,14 @@ def make_parser():
 
     build_parser = subparsers.add_parser("build", help="Parse the contents of a Markdown file in an Obsidian vault")
     build_parser.set_defaults(func=lambda _: None)
+
+    serve_parser = subparsers.add_parser("serve", help="Start up a development Flask server for an Obsidian Vault")
+    serve_parser.set_defaults(func=cli_serve_command)
+    serve_parser.add_argument("--db-name", help="The notes database name")
+    serve_parser.add_argument("--db-user", help="The notes database username")
+    serve_parser.add_argument("--db-pass", help="The notes database password")
+    serve_parser.add_argument("--db-host", help="The notes database host")
+    serve_parser.add_argument("--db-port", help="The notes database port")
 
     return parser
 
@@ -52,9 +61,23 @@ def cli_parse_command(args: argparse.Namespace) -> int:
         return EINVAL
     
     result = markdown.parser.parse_file(args.vault, source_file, args.reference_prefix)
-    rendered = markdown.renderer.render(result)
-    print(rendered)
+    print(result)
     return 0
+
+
+def _set_env_if_specified(args: argparse.Namespace, env_var: str, arg_var: str) -> None:
+    if hasattr(args, arg_var) and (value := getattr(args, arg_var)) is not None:
+        os.environ[f"OBSIDIAN_GATE_{env_var}"] = value
+
+def cli_serve_command(args: argparse.Namespace) -> None:
+    _set_env_if_specified(args, "DATABASE_NAME", "db_name")
+    _set_env_if_specified(args, "DATABASE_USERNAME", "db_user")
+    _set_env_if_specified(args, "DATABASE_PASSWORD", "db_pass")
+    _set_env_if_specified(args, "DATABASE_HOST", "db_host")
+    _set_env_if_specified(args, "DATABASE_PORT", "db_port")
+
+    from obsidian_gate.web import app
+    return app.create_app().run(debug=True)
 
 
 def main(args: argparse.Namespace) -> int:

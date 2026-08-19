@@ -1,6 +1,6 @@
 from markdown_it.token import Token
 
-from .parser import make_markdown_parser_for_rendering
+from obsidian_gate.markdown.parser import make_markdown_parser_for_rendering
 
 
 def render(data: list[dict]) -> str:
