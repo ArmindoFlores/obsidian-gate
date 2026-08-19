@@ -58,7 +58,7 @@ wheels = [
 [[package]]
 name = "obsidian-gate"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
     { name = "pyyaml" },

@@ -9,7 +9,14 @@ dependencies = [
     "pyyaml>=6.0.3",
 ]
 
+[project.scripts]
+gate = "obsidian_gate.cli:run"
+
 [dependency-groups]
 dev = [
     "ty>=0.0.58",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
