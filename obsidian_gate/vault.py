@@ -1,9 +1,13 @@
+from collections.abc import Callable, Generator
 from pathlib import Path
+
+import watchfiles
+from watchfiles.main import FileChange
 
 
 class Vault:
     def __init__(self, root: str | Path, excluded_directories: list[str] | None = None) -> None:
-        self.root = (Path(root) if isinstance(root, str) else root).resolve()
+        self.root = (Path(root) if isinstance(root, str) else root).expanduser().resolve()
         self.excluded_directories = excluded_directories or []
         self._listing = self._compute_listing()
 
@@ -34,3 +38,11 @@ class Vault:
                 joined = "/".join(vault_file)
                 return joined if is_image else joined[:-3]
         return None
+
+    def get_note_files(self, absolute=False) -> Generator[Path, None, None]:
+        for path in self._listing:
+            yield Path(self.root, *path) if absolute else Path(*path)
+
+    def watch(self, on_change: Callable[["Vault", set[FileChange]], None]) -> None:
+        for changes in watchfiles.watch(self.root):
+            on_change(self, changes)

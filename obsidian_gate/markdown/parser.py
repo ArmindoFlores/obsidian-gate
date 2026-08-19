@@ -34,8 +34,19 @@ def make_markdown_parser_for_rendering() -> MarkdownIt:
     )
 
 
-def parse_file(vault_root: str | Path, file: Path, reference_prefix: str | None = None) -> list[dict]:
-    md = make_markdown_parser(Vault(vault_root), reference_prefix)
+def parse_file(vault_root: str | Path | Vault, file: Path, reference_prefix: str | None = None) -> list[dict]:
+    vault = vault_root if isinstance(vault_root, Vault) else Vault(vault_root)
+    md = make_markdown_parser(vault, reference_prefix)
     return [
         dict(token.as_dict()) for token in md.parse(file.read_text())
     ]
+
+
+def parse_files(vault_root: str | Path | Vault, files: list[Path], reference_prefix: str | None = None) -> dict[str, list[dict]]:
+    vault = vault_root if isinstance(vault_root, Vault) else Vault(vault_root)
+    md = make_markdown_parser(vault, reference_prefix)
+    return {
+        str(file): [
+            dict(token.as_dict()) for token in md.parse(file.read_text())
+        ] for file in files
+    }

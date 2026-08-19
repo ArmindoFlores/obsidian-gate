@@ -69,6 +69,7 @@ def _set_env_if_specified(args: argparse.Namespace, env_var: str, arg_var: str) 
     if hasattr(args, arg_var) and (value := getattr(args, arg_var)) is not None:
         os.environ[f"OBSIDIAN_GATE_{env_var}"] = value
 
+
 def cli_serve_command(args: argparse.Namespace) -> None:
     _set_env_if_specified(args, "DATABASE_NAME", "db_name")
     _set_env_if_specified(args, "DATABASE_USERNAME", "db_user")
